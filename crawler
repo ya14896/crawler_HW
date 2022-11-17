@@ -1,0 +1,54 @@
+import requests
+from bs4 import BeautifulSoup
+
+
+headers ={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"}
+url = "https://www.104.com.tw/jobs/search/?keyword=python&area=6001005000&jobsource=2018indexpoc&ro=0"
+
+job_list=[]
+content_list=[]
+company_list =[]
+
+req = requests.get(url)
+soup = BeautifulSoup(req.text,"html.parser")
+print(soup.prettify)
+
+#公司名
+Company = soup.select('article[class="b-block--top-bord job-list-item b-clearfix js-job-item"]') #Company: bs4.element.ResultSet
+#print(Company)
+
+
+for Company_name in Company:
+    #print(Company_name)
+    Company_name_result = Company_name.get('data-cust-name')
+    company_list.append(Company_name_result) 
+    print(Company_name_result)
+    
+#職缺
+job_link = soup.select('a[class="js-job-link"]')
+for job in job_link:
+    job_link_result = job.text
+    job_list.append(job_link_result)
+    print(job_link_result)
+    
+#工作內容
+job_content = soup.select('p[class="job-list-item__info b-clearfix b-content"]')
+
+for content in job_content:
+    job_content_result = content.text
+    content_list.append(job_content_result)
+    print(job_content_result)
+
+#存成表格
+import pandas as pd
+
+#type(company_list)
+#company_list
+df = pd.DataFrame(columns=['公司名','職缺','工作內容'])
+df['公司名'] = company_list
+df['職缺'] = job_list
+df['工作內容'] = content_list
+df
+
+#存成CSV
+df.to_csv(r'./104_job.csv', index=0,encoding = 'utf_8_sig')
